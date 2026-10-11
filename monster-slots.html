@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monster Mash Slots</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Creepster&family=Barlow+Condensed:wght@400;600;700&display=swap">
+<style>
+  :root {
+    --bg: #1a0e2e;
+    --panel: #2a1745;
+    --frame: #3d1f6d;
+    --gold: #d4a017;
+    --gold-dim: #8b6914;
+    --orange: #e8651a;
+    --green: #4ae85c;
+    --text: #f0e6ff;
+    --slot-bg: #0d0618;
+    --glow-purple: rgba(138, 43, 226, 0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(138,43,226,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 80%, rgba(232,101,26,0.1) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .title {
+    font-family: 'Creepster', cursive;
+    font-size: clamp(2.2rem, 6vw, 4rem);
+    color: var(--orange);
+    text-shadow:
+      0 0 20px rgba(232,101,26,0.6),
+      0 0 40px rgba(232,101,26,0.3),
+      0 2px 0 #8b3a0a;
+    letter-spacing: 0.05em;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    animation: flicker 4s ease-in-out infinite;
+  }
+
+  @keyframes flicker {
+    0%, 95%, 100% { opacity: 1; }
+    96% { opacity: 0.85; }
+    97% { opacity: 1; }
+    98% { opacity: 0.9; }
+  }
+
+  .machine {
+    background: linear-gradient(180deg, var(--frame) 0%, var(--panel) 100%);
+    border: 3px solid var(--gold-dim);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow:
+      0 0 30px var(--glow-purple),
+      inset 0 1px 0 rgba(255,255,255,0.1),
+      0 8px 32px rgba(0,0,0,0.5);
+    position: relative;
+    width: min(440px, 94vw);
+  }
+
+  .machine::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 20%;
+    right: 20%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .reels-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--slot-bg);
+    border-radius: 12px;
+    padding: 6px;
+    border: 2px solid rgba(212,160,23,0.3);
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+  }
+
+  .reel-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .reel-row {
+    position: relative;
+    aspect-ratio: 848 / 421.33;
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--slot-bg);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .reel-row::before,
+  .reel-row::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    height: 15px;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .reel-row::before {
+    top: 0;
+    background: linear-gradient(to bottom, rgba(13,6,24,0.6), transparent);
+  }
+
+  .reel-row::after {
+    bottom: 0;
+    background: linear-gradient(to top, rgba(13,6,24,0.6), transparent);
+  }
+
+  .reel-strip {
+    display: flex;
+    flex-direction: column;
+    will-change: transform;
+  }
+
+  .reel-item {
+    width: 100%;
+    aspect-ratio: 848 / 421.33;
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .reel-item img {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .reel-row[data-part="head"] .reel-item img { top: 0; }
+  .reel-row[data-part="body"] .reel-item img { top: -100%; }
+  .reel-row[data-part="legs"] .reel-item img { top: -200%; }
+
+  .reel-arrows {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 4px;
+    flex-shrink: 0;
+  }
+
+  .arrow-btn {
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--gold-dim);
+    border-radius: 8px;
+    background: linear-gradient(180deg, var(--frame) 0%, var(--panel) 100%);
+    color: var(--gold);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+
+  .arrow-btn:hover {
+    background: linear-gradient(180deg, #5a2d9e 0%, var(--frame) 100%);
+    border-color: var(--gold);
+    box-shadow: 0 0 10px rgba(212,160,23,0.3);
+  }
+
+  .arrow-btn:active {
+    transform: scale(0.9);
+  }
+
+  .arrow-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .divider {
+    height: 2px;
+    background: linear-gradient(90deg, transparent 5%, var(--gold-dim) 30%, var(--gold) 50%, var(--gold-dim) 70%, transparent 95%);
+    opacity: 0.5;
+  }
+
+  .buttons-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .spin-btn {
+    display: block;
+    flex: 1;
+    padding: 0.9rem 1.5rem;
+    font-family: 'Creepster', cursive;
+    font-size: 1.6rem;
+    letter-spacing: 0.08em;
+    color: #fff;
+    background: linear-gradient(180deg, #c62828 0%, #8e0000 100%);
+    border: 3px solid #e53935;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow:
+      0 4px 0 #5d0000,
+      0 6px 20px rgba(198,40,40,0.4);
+    transition: all 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .spin-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 40%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.15), transparent);
+    border-radius: 9px 9px 0 0;
+  }
+
+  .spin-btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, #d32f2f 0%, #a10000 100%);
+    box-shadow: 0 4px 0 #5d0000, 0 6px 24px rgba(198,40,40,0.6);
+  }
+
+  .spin-btn:active:not(:disabled) {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #5d0000, 0 2px 10px rgba(198,40,40,0.4);
+  }
+
+  .spin-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .ready-btn {
+    display: block;
+    flex: 1;
+    padding: 0.9rem 1.5rem;
+    font-family: 'Creepster', cursive;
+    font-size: 1.6rem;
+    letter-spacing: 0.08em;
+    color: #fff;
+    background: linear-gradient(180deg, #e8651a 0%, #b84400 100%);
+    border: 3px solid #f4832a;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow:
+      0 4px 0 #7a2e00,
+      0 6px 20px rgba(232,101,26,0.4);
+    transition: all 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ready-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 40%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.15), transparent);
+    border-radius: 9px 9px 0 0;
+  }
+
+  .ready-btn:hover {
+    background: linear-gradient(180deg, #f4832a 0%, #cc5500 100%);
+    box-shadow: 0 4px 0 #7a2e00, 0 6px 24px rgba(232,101,26,0.6);
+  }
+
+  .ready-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #7a2e00, 0 2px 10px rgba(232,101,26,0.4);
+  }
+
+  .ready-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .spin-btn.spinning {
+    animation: btnPulse 0.4s ease-in-out infinite;
+  }
+
+  @keyframes btnPulse {
+    0%, 100% { box-shadow: 0 4px 0 #5d0000, 0 6px 20px rgba(198,40,40,0.4); }
+    50% { box-shadow: 0 4px 0 #5d0000, 0 6px 30px rgba(198,40,40,0.7); }
+  }
+
+  /* Win overlay */
+  .win-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(13,6,24,0.85);
+  }
+
+  .win-overlay.show {
+    display: flex;
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .win-content {
+    text-align: center;
+    animation: winBounce 0.6s ease-out;
+  }
+
+  @keyframes winBounce {
+    0% { transform: scale(0.3) rotate(-5deg); opacity: 0; }
+    50% { transform: scale(1.1) rotate(2deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  .win-title {
+    font-family: 'Creepster', cursive;
+    font-size: clamp(3rem, 10vw, 5rem);
+    color: var(--gold);
+    text-shadow:
+      0 0 30px rgba(212,160,23,0.8),
+      0 0 60px rgba(212,160,23,0.4),
+      0 3px 0 #8b6914;
+    margin-bottom: 0.5rem;
+  }
+
+  .win-monster-name {
+    font-family: 'Creepster', cursive;
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
+    color: var(--green);
+    text-shadow: 0 0 20px rgba(74,232,92,0.5);
+    margin-bottom: 0.5rem;
+  }
+
+  .win-image {
+    width: min(250px, 60vw);
+    border-radius: 16px;
+    border: 3px solid var(--gold);
+    box-shadow: 0 0 40px rgba(212,160,23,0.4);
+    margin-bottom: 1.5rem;
+  }
+
+  .win-close {
+    font-family: 'Creepster', cursive;
+    font-size: 1.3rem;
+    letter-spacing: 0.06em;
+    padding: 0.7rem 2.5rem;
+    background: linear-gradient(180deg, var(--frame) 0%, var(--panel) 100%);
+    border: 2px solid var(--gold);
+    border-radius: 10px;
+    color: var(--gold);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .win-close:hover {
+    background: linear-gradient(180deg, #5a2d9e 0%, var(--frame) 100%);
+    box-shadow: 0 0 15px rgba(212,160,23,0.3);
+  }
+
+  /* Confetti */
+  .confetti-piece {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    z-index: 101;
+    pointer-events: none;
+    animation: confettiFall var(--fall-dur) ease-in forwards;
+    opacity: 0.9;
+  }
+
+  @keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(var(--spin)); opacity: 0; }
+  }
+
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+  }
+
+  .star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: rgba(255,255,255,0.6);
+    border-radius: 50%;
+    animation: twinkle var(--dur) ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.8; }
+  }
+
+  .instructions {
+    width: min(440px, 94vw);
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .instructions details {
+    background: rgba(61, 31, 109, 0.6);
+    border: 1px solid rgba(212, 160, 23, 0.25);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .instructions summary {
+    font-family: 'Creepster', cursive;
+    font-size: 1.15rem;
+    letter-spacing: 0.04em;
+    color: var(--gold);
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .instructions summary::before {
+    content: '▸';
+    transition: transform 0.2s;
+    display: inline-block;
+  }
+
+  .instructions details[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  .instructions summary::-webkit-details-marker { display: none; }
+
+  .instructions .content {
+    padding: 0 1rem 0.8rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text);
+    opacity: 0.9;
+  }
+
+  .instructions .content p {
+    margin-bottom: 0.5rem;
+  }
+
+  .instructions .content .label {
+    color: var(--orange);
+    font-weight: 700;
+  }
+
+  .instructions .content em {
+    color: var(--gold);
+    font-style: italic;
+    opacity: 0.7;
+  }
+
+  @media (max-width: 420px) {
+    .machine { padding: 1rem; }
+    .reels-container { padding: 4px; }
+    .arrow-btn { width: 30px; height: 30px; font-size: 0.9rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<h1 class="title">Monster Mash Slots</h1>
+
+<div class="instructions">
+  <details>
+    <summary>How to Play</summary>
+    <div class="content">
+      <p>I can see a pirate, but this isn't a pirate's body, and these aren't a pirate's legs.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>For Stronger Students</summary>
+    <div class="content">
+      <p><span class="label">Student A:</span> Who's this?</p>
+      <p><span class="label">Student B:</span> I can see a pirate, but this isn't a pirate's body, and these aren't a pirate's legs.</p>
+      <p><em>After a spin:</em></p>
+      <p><span class="label">Student A:</span> Is this a pirate's body?</p>
+      <p><span class="label">Student B:</span> No, it isn't. It's a witch's body! / Yes, it is!</p>
+    </div>
+  </details>
+</div>
+
+<div class="machine">
+  <div class="reels-container">
+    <div class="reel-wrapper">
+      <div class="reel-row" data-part="head" id="reel-head">
+        <div class="reel-strip" id="strip-head"></div>
+      </div>
+      <div class="reel-arrows">
+        <button class="arrow-btn" onclick="nudge('head', -1)" title="Previous head">&#9650;</button>
+        <button class="arrow-btn" onclick="nudge('head', 1)" title="Next head">&#9660;</button>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="reel-wrapper">
+      <div class="reel-row" data-part="body" id="reel-body">
+        <div class="reel-strip" id="strip-body"></div>
+      </div>
+      <div class="reel-arrows">
+        <button class="arrow-btn" onclick="nudge('body', -1)" title="Previous body">&#9650;</button>
+        <button class="arrow-btn" onclick="nudge('body', 1)" title="Next body">&#9660;</button>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="reel-wrapper">
+      <div class="reel-row" data-part="legs" id="reel-legs">
+        <div class="reel-strip" id="strip-legs"></div>
+      </div>
+      <div class="reel-arrows">
+        <button class="arrow-btn" onclick="nudge('legs', -1)" title="Previous legs">&#9650;</button>
+        <button class="arrow-btn" onclick="nudge('legs', 1)" title="Next legs">&#9660;</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="buttons-row">
+    <button class="spin-btn" id="spin-btn" onclick="spin()">SPIN!</button>
+  </div>
+
+  <div class="buttons-row">
+    <button class="ready-btn" id="ready-btn" onclick="onReady()">READY!</button>
+  </div>
+</div>
+
+<div class="win-overlay" id="win-overlay">
+  <div class="win-content">
+    <div class="win-title">YOU WIN!</div>
+    <img class="win-image" id="win-image" src="" alt="">
+    <div class="win-monster-name" id="win-monster-name"></div>
+    <button class="win-close" onclick="closeWin()">Play Again</button>
+  </div>
+</div>
+
+<script>
+  const monsters = [
+    { file: 'halloween2/Frame%201.png', name: 'Zombie Cowboy' },
+    { file: 'halloween2/Frame%2010.png', name: 'Cyclops' },
+    { file: 'halloween2/Frame%203.png', name: 'Skeleton' },
+    { file: 'halloween2/Frame%204.png', name: 'Mummy' },
+    { file: 'halloween2/Frame%205.png', name: 'Vampire' },
+    { file: 'halloween2/Frame%206.png', name: 'Pirate' },
+    { file: 'halloween2/Frame%207.png', name: 'Witch' },
+    { file: 'halloween2/Frame%208.png', name: 'Ghost' },
+    { file: 'halloween2/Frame%209.png', name: 'Bat' },
+  ];
+
+  const ITEM_COUNT = monsters.length;
+  let spinning = false;
+  let nudging = false;
+  let current = { head: 0, body: 0, legs: 0 };
+
+  function getItemHeight() {
+    return document.getElementById('reel-head').offsetHeight;
+  }
+
+  function buildStrip(stripId) {
+    const strip = document.getElementById(stripId);
+    strip.innerHTML = '';
+    for (let c = 0; c < 3; c++) {
+      for (let i = 0; i < ITEM_COUNT; i++) {
+        const div = document.createElement('div');
+        div.className = 'reel-item';
+        const img = document.createElement('img');
+        img.src = monsters[i].file;
+        img.alt = monsters[i].name;
+        img.draggable = false;
+        div.appendChild(img);
+        strip.appendChild(div);
+      }
+    }
+  }
+
+  function setReelPos(part, idx, animated) {
+    const strip = document.getElementById('strip-' + part);
+    const h = getItemHeight();
+    if (animated) {
+      strip.style.transition = 'transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1)';
+    } else {
+      strip.style.transition = 'none';
+    }
+    strip.style.transform = `translateY(-${idx * h}px)`;
+  }
+
+  function initReels() {
+    buildStrip('strip-head');
+    buildStrip('strip-body');
+    buildStrip('strip-legs');
+
+    current.head = Math.floor(Math.random() * ITEM_COUNT);
+    current.body = Math.floor(Math.random() * ITEM_COUNT);
+    current.legs = Math.floor(Math.random() * ITEM_COUNT);
+
+    setReelPos('head', current.head, false);
+    setReelPos('body', current.body, false);
+    setReelPos('legs', current.legs, false);
+  }
+
+  function nudge(part, direction) {
+    if (spinning || nudging) return;
+    nudging = true;
+
+    const oldIdx = current[part];
+    let newIdx = (oldIdx + direction + ITEM_COUNT) % ITEM_COUNT;
+    current[part] = newIdx;
+
+    const strip = document.getElementById('strip-' + part);
+    const h = getItemHeight();
+
+    if (direction === 1 && newIdx === 0) {
+      strip.style.transition = 'transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1)';
+      strip.style.transform = `translateY(-${ITEM_COUNT * h}px)`;
+      strip.addEventListener('transitionend', function handler() {
+        strip.removeEventListener('transitionend', handler);
+        strip.style.transition = 'none';
+        strip.style.transform = `translateY(0px)`;
+        nudging = false;
+      });
+    } else if (direction === -1 && newIdx === ITEM_COUNT - 1) {
+      strip.style.transition = 'none';
+      strip.style.transform = `translateY(-${ITEM_COUNT * h}px)`;
+      void strip.offsetHeight;
+      strip.style.transition = 'transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1)';
+      strip.style.transform = `translateY(-${newIdx * h}px)`;
+      strip.addEventListener('transitionend', function handler() {
+        strip.removeEventListener('transitionend', handler);
+        nudging = false;
+      });
+    } else {
+      setReelPos(part, newIdx, true);
+      strip.addEventListener('transitionend', function handler() {
+        strip.removeEventListener('transitionend', handler);
+        nudging = false;
+      });
+    }
+  }
+
+  function onReady() {
+    if (spinning) return;
+    if (monsters[current.head].name === monsters[current.body].name &&
+        monsters[current.body].name === monsters[current.legs].name) {
+      showWin(monsters[current.head]);
+    }
+  }
+
+  function showWin(monster) {
+    document.getElementById('win-image').src = monster.file;
+    document.getElementById('win-image').alt = monster.name;
+    document.getElementById('win-monster-name').textContent = monster.name;
+    document.getElementById('win-overlay').classList.add('show');
+    spawnConfetti();
+  }
+
+  function closeWin() {
+    document.getElementById('win-overlay').classList.remove('show');
+    document.querySelectorAll('.confetti-piece').forEach(el => el.remove());
+  }
+
+  function spawnConfetti() {
+    const colors = ['#d4a017', '#e8651a', '#4ae85c', '#e53935', '#8a2be2', '#ff69b4', '#00bcd4'];
+    for (let i = 0; i < 60; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random() * 100 + 'vw';
+      piece.style.top = -10 + 'px';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.width = (6 + Math.random() * 8) + 'px';
+      piece.style.height = (6 + Math.random() * 8) + 'px';
+      piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      piece.style.setProperty('--fall-dur', (2 + Math.random() * 2) + 's');
+      piece.style.setProperty('--spin', (360 + Math.random() * 720) + 'deg');
+      piece.style.animationDelay = (Math.random() * 0.8) + 's';
+      document.body.appendChild(piece);
+      piece.addEventListener('animationend', () => piece.remove());
+    }
+  }
+
+  function spin() {
+    if (spinning) return;
+    spinning = true;
+
+    const btn = document.getElementById('spin-btn');
+    btn.disabled = true;
+    btn.classList.add('spinning');
+    document.querySelectorAll('.arrow-btn').forEach(b => b.disabled = true);
+    document.getElementById('ready-btn').disabled = true;
+
+    const h = getItemHeight();
+    const targetHead = Math.floor(Math.random() * ITEM_COUNT);
+    const targetBody = Math.floor(Math.random() * ITEM_COUNT);
+    const targetLegs = Math.floor(Math.random() * ITEM_COUNT);
+
+    const baseCycles = 2;
+
+    animateReel('strip-head', current.head, targetHead, baseCycles, h, 1200, () => {
+      current.head = targetHead;
+    });
+
+    animateReel('strip-body', current.body, targetBody, baseCycles + 1, h, 1800, () => {
+      current.body = targetBody;
+    });
+
+    animateReel('strip-legs', current.legs, targetLegs, baseCycles + 2, h, 2400, () => {
+      current.legs = targetLegs;
+      spinning = false;
+      btn.disabled = false;
+      btn.classList.remove('spinning');
+      document.querySelectorAll('.arrow-btn').forEach(b => b.disabled = false);
+      document.getElementById('ready-btn').disabled = false;
+    });
+  }
+
+  function animateReel(stripId, fromIdx, toIdx, cycles, itemH, duration, onDone) {
+    const strip = document.getElementById(stripId);
+    const totalItems = cycles * ITEM_COUNT + toIdx;
+    const startY = fromIdx * itemH;
+    const startTime = performance.now();
+
+    function easeOutCubic(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    function tick(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = easeOutCubic(progress);
+      const totalDistance = totalItems * itemH;
+      const currentDistance = eased * totalDistance;
+      const currentPos = (startY + currentDistance) % (ITEM_COUNT * itemH);
+
+      strip.style.transition = 'none';
+      strip.style.transform = `translateY(-${currentPos}px)`;
+
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        strip.style.transform = `translateY(-${toIdx * itemH}px)`;
+        onDone();
+      }
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  (function() {
+    const container = document.getElementById('stars');
+    for (let i = 0; i < 50; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.setProperty('--dur', (2 + Math.random() * 3) + 's');
+      star.style.setProperty('--delay', Math.random() * 3 + 's');
+      if (Math.random() > 0.7) {
+        star.style.width = '3px';
+        star.style.height = '3px';
+      }
+      container.appendChild(star);
+    }
+  })();
+
+  window.addEventListener('load', initReels);
+  window.addEventListener('resize', () => {
+    setReelPos('head', current.head, false);
+    setReelPos('body', current.body, false);
+    setReelPos('legs', current.legs, false);
+  });
+</script>
+
+</body>
+</html>
